@@ -148,10 +148,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
     box-shadow: 0 1px 6px rgba(59, 130, 246, 0.18);
   }
 
-  /* 用語名: 左寄せ */
+  /* 用語名: 左寄せ、残り幅を全て埋める */
   .card-table td.col-term {
-    width: auto;
-    flex: 1 1 auto;
+    width: 0;
+    flex: 1 1 0;
     font-weight: 600;
     font-size: 0.92rem;
     padding: 0;
@@ -159,11 +159,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
     order: 1;
   }
 
-  /* 覚えた / 戻す ボタン: 右寄せ */
+  /* 覚えた / 戻す ボタン: 右端固定 */
   .card-table td.col-action {
     width: auto;
     flex: 0 0 auto;
-    padding: 0;
+    padding: 0 0 0 8px;
     border-bottom: none;
     text-align: right;
     order: 2;
