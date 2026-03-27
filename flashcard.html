@@ -68,6 +68,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 .col-def { width: auto; }
 .col-action { width: 80px; text-align: center; }
 
+/* Dataset selector */
+.dataset-select { padding: 6px 28px 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font-size: 0.82rem; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; max-width: 200px; text-overflow: ellipsis; }
+.dataset-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+
 /* Clickable content toggle */
 .def-toggle { cursor: pointer; }
 .def-toggle:hover { opacity: 0.7; }
@@ -112,6 +116,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
   .header { flex-direction: column; align-items: flex-start; }
   .header h1 { font-size: 1.1rem; }
   .header-actions { width: 100%; }
+  .dataset-select { width: 100%; max-width: none; min-height: 44px; font-size: 0.85rem; }
 
   /* タップターゲット拡大 */
   .btn { min-height: 44px; padding: 8px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; justify-content: center; }
@@ -215,7 +220,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
     <div class="header">
       <h1 id="titleDisplay">フラッシュカード</h1>
       <div class="header-actions">
-        <button class="btn btn-sm btn-ghost" onclick="changeData()">データを変更</button>
+        <select id="datasetSelect" class="dataset-select" onchange="onDatasetChange(this.value)"></select>
       </div>
     </div>
 
@@ -430,14 +435,82 @@ function loadCSVText(text, fileName) {
   // Generate data key from filename
   dataKey = fileName.replace(/\.csv$/i, '');
 
-  // Save to localStorage
-  localStorage.setItem('fc_csv_text', text);
-  localStorage.setItem('fc_csv_name', fileName);
+  // Save dataset to localStorage
+  saveDataset(dataKey, text);
+  localStorage.setItem('fc_active_dataset', dataKey);
 
   // Load archived state for this dataKey
   loadArchivedState();
 
   initUI();
+}
+
+// --- Dataset Management ---
+function getDatasetList() {
+  try {
+    return JSON.parse(localStorage.getItem('fc_dataset_list') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveDataset(key, text) {
+  localStorage.setItem('fc_data_' + key, text);
+  const list = getDatasetList();
+  if (!list.includes(key)) {
+    list.push(key);
+    localStorage.setItem('fc_dataset_list', JSON.stringify(list));
+  }
+}
+
+function loadDataset(key) {
+  return localStorage.getItem('fc_data_' + key);
+}
+
+function renderDatasetSelect() {
+  const select = document.getElementById('datasetSelect');
+  const list = getDatasetList();
+  let html = '';
+  list.forEach(name => {
+    const selected = name === dataKey ? ' selected' : '';
+    html += '<option value="' + escHtml(name) + '"' + selected + '>' + escHtml(name) + '</option>';
+  });
+  html += '<option value="__new__">＋ 新規CSVファイル</option>';
+  select.innerHTML = html;
+}
+
+function onDatasetChange(value) {
+  if (value === '__new__') {
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('uploadScreen').style.display = 'flex';
+    // Reset select to current dataset so back button works
+    const select = document.getElementById('datasetSelect');
+    select.value = dataKey;
+    return;
+  }
+  const text = loadDataset(value);
+  if (text) {
+    const cards = csvToCards(text);
+    if (cards.length > 0) {
+      allCards = cards;
+      dataKey = value;
+      localStorage.setItem('fc_active_dataset', dataKey);
+      loadArchivedState();
+      initUI();
+    }
+  }
+}
+
+// --- Migrate old localStorage format ---
+function migrateOldStorage() {
+  const oldText = localStorage.getItem('fc_csv_text');
+  const oldName = localStorage.getItem('fc_csv_name');
+  if (oldText && oldName) {
+    const key = oldName.replace(/\.csv$/i, '');
+    saveDataset(key, oldText);
+    localStorage.setItem('fc_active_dataset', key);
+    // Clean up old keys
+    localStorage.removeItem('fc_csv_text');
+    localStorage.removeItem('fc_csv_name');
+  }
 }
 
 function loadArchivedState() {
@@ -457,18 +530,12 @@ function saveArchivedState() {
   localStorage.setItem('fc_archived_' + dataKey, JSON.stringify([...archivedIds]));
 }
 
-function changeData() {
-  if (confirm('別のCSVファイルを読み込みますか？')) {
-    document.getElementById('mainScreen').style.display = 'none';
-    document.getElementById('uploadScreen').style.display = 'flex';
-  }
-}
-
 // --- UI Init ---
 function initUI() {
   document.getElementById('uploadScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display = 'block';
   document.getElementById('titleDisplay').textContent = dataKey || 'フラッシュカード';
+  renderDatasetSelect();
 
   // Extract categories
   const catSet = new Set();
@@ -842,11 +909,20 @@ function escHtml(str) {
     if (file) handleFile(file);
   });
 
-  // Restore from localStorage on load
-  const savedText = localStorage.getItem('fc_csv_text');
-  const savedName = localStorage.getItem('fc_csv_name');
-  if (savedText && savedName) {
-    loadCSVText(savedText, savedName);
+  // Migrate old format & restore from localStorage
+  migrateOldStorage();
+  const activeKey = localStorage.getItem('fc_active_dataset');
+  if (activeKey) {
+    const text = loadDataset(activeKey);
+    if (text) {
+      const cards = csvToCards(text);
+      if (cards.length > 0) {
+        allCards = cards;
+        dataKey = activeKey;
+        loadArchivedState();
+        initUI();
+      }
+    }
   }
 
   // Register Service Worker
