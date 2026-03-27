@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>フラッシュカード学習</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3b82f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FlashCard">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; background: #f7f8fa; color: #1a1a1a; line-height: 1.6; }
+
+.app { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.header h1 { font-size: 1.3rem; font-weight: 700; color: #2c3e50; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+.btn-primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.btn-primary:hover { background: #2563eb; }
+.btn-success { background: #10b981; color: #fff; border-color: #10b981; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+.btn-danger:hover { background: #dc2626; }
+.btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+.btn-ghost { border: none; background: transparent; color: #6b7280; }
+.btn-ghost:hover { color: #1a1a1a; background: #e5e7eb; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
+.tab { padding: 10px 20px; font-size: 0.9rem; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; user-select: none; }
+.tab:hover { color: #374151; }
+.tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+.tab .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; background: #e5e7eb; color: #6b7280; font-size: 0.72rem; font-weight: 700; }
+.tab.active .badge { background: #dbeafe; color: #3b82f6; }
+
+/* Progress */
+.progress-bar-container { margin-bottom: 16px; }
+.progress-info { display: flex; justify-content: space-between; font-size: 0.82rem; color: #6b7280; margin-bottom: 4px; }
+.progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 3px; transition: width 0.4s ease; }
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.filter-btn { padding: 4px 12px; border-radius: 16px; font-size: 0.78rem; border: 1px solid #d1d5db; background: #fff; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+.filter-btn:hover { border-color: #9ca3af; color: #374151; }
+.filter-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+/* Bulk actions */
+.bulk-actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+
+/* Table */
+.card-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.card-table th { padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; color: #6b7280; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.card-table td { padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+.card-table tr:last-child td { border-bottom: none; }
+.card-table tr.removing { animation: slideOut 0.35s ease forwards; }
+.card-table tr.adding { animation: slideIn 0.35s ease forwards; }
+.col-term { width: 25%; font-weight: 600; }
+.col-def { width: auto; }
+.col-action { width: 80px; text-align: center; }
+
+/* Clickable content toggle */
+.def-toggle { cursor: pointer; }
+.def-toggle:hover { opacity: 0.7; }
+
+/* Hidden content */
+.def-hidden { color: transparent; background: repeating-linear-gradient(90deg, #e5e7eb 0px, #e5e7eb 8px, transparent 8px, transparent 12px); background-clip: text; -webkit-background-clip: text; user-select: none; position: relative; }
+.def-placeholder { display: inline-block; padding: 4px 12px; background: #f3f4f6; border-radius: 4px; color: #9ca3af; font-size: 0.78rem; font-style: italic; cursor: pointer; }
+
+/* Category tag */
+.cat-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; color: #6b7280; background: #f3f4f6; margin-bottom: 2px; }
+
+/* Context sub */
+.context-sub { font-size: 0.75rem; color: #9ca3af; font-weight: 400; display: block; margin-top: 1px; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 16px; color: #9ca3af; }
+.empty-state p { font-size: 0.9rem; margin-bottom: 8px; }
+
+/* Upload area */
+.upload-area { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; gap: 16px; }
+.drop-zone { width: 100%; max-width: 480px; padding: 48px 24px; border: 2px dashed #d1d5db; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fff; }
+.drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+.drop-zone h2 { font-size: 1.1rem; color: #374151; margin-bottom: 8px; }
+.drop-zone p { font-size: 0.85rem; color: #9ca3af; }
+.drop-zone .icon { font-size: 2.4rem; margin-bottom: 12px; }
+
+/* Animations */
+@keyframes slideOut {
+  0% { opacity: 1; transform: translateX(0); max-height: 60px; }
+  100% { opacity: 0; transform: translateX(40px); max-height: 0; padding: 0; }
+}
+@keyframes slideIn {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .app { padding: 10px; }
+
+  /* Header: 縦積み */
+  .header { flex-direction: column; align-items: flex-start; }
+  .header h1 { font-size: 1.1rem; }
+  .header-actions { width: 100%; }
+
+  /* タップターゲット拡大 */
+  .btn { min-height: 44px; padding: 8px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-sm { min-height: 44px; padding: 6px 12px; }
+  .tab { padding: 10px 8px; font-size: 0.82rem; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+
+  /* タブ均等配置 */
+  .tabs { display: flex; }
+  .tab { flex: 1; text-align: center; }
+
+  /* フィルタ横スクロール */
+  .filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .filter-btn { flex-shrink: 0; min-height: 44px; padding: 6px 14px; display: inline-flex; align-items: center; }
+
+  /* テーブルをカード型に変換 */
+  .card-table { background: transparent; box-shadow: none; border-radius: 0; }
+  .card-table, .card-table thead, .card-table tbody, .card-table tr, .card-table th, .card-table td { display: block; }
+  .card-table thead { display: none; }
+
+  .card-table tbody tr {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
+    transition: box-shadow 0.15s;
+  }
+  .card-table tbody tr:active {
+    box-shadow: 0 1px 6px rgba(59, 130, 246, 0.18);
+  }
+
+  /* 用語名: 左寄せ */
+  .card-table td.col-term {
+    width: auto;
+    flex: 1 1 auto;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 0;
+    border-bottom: none;
+    order: 1;
+  }
+
+  /* 覚えた / 戻す ボタン: 右寄せ */
+  .card-table td.col-action {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0;
+    border-bottom: none;
+    text-align: right;
+    order: 2;
+  }
+
+  /* 定義文: 用語+ボタンの下にフルwidth */
+  .card-table td.col-def {
+    width: 100%;
+    flex: 0 0 100%;
+    padding: 8px 0 0 0;
+    border-bottom: none;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    order: 3;
+  }
+
+  /* カード内要素の微調整 */
+  .card-table td .cat-tag { margin-bottom: 0; margin-right: 6px; }
+  .card-table td .def-placeholder { margin-top: 0; }
+  .card-table td .context-sub { margin-top: 4px; }
+
+  /* アニメーション調整 */
+  .card-table tr.removing {
+    animation: mobileSlideOut 0.35s ease forwards;
+    overflow: hidden;
+  }
+  @keyframes mobileSlideOut {
+    0% { opacity: 1; transform: translateX(0); max-height: 300px; }
+    100% { opacity: 0; transform: translateX(40px); max-height: 0; padding: 0; margin: 0; }
+  }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Upload Screen -->
+  <div id="uploadScreen" class="upload-area">
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">&#128196;</div>
+      <h2>CSVファイルを選択またはドロップ</h2>
+      <p>category, term, definition の列を持つCSV（context列は任意）</p>
+      <input type="file" id="fileInput" accept=".csv" style="display:none">
+    </div>
+    <p style="font-size:0.8rem; color:#9ca3af;">UTF-8 / Shift_JIS 対応</p>
+  </div>
+
+  <!-- Main Screen -->
+  <div id="mainScreen" style="display:none">
+    <div class="header">
+      <h1 id="titleDisplay">フラッシュカード</h1>
+      <div class="header-actions">
+        <button class="btn btn-sm btn-ghost" onclick="changeData()">データを変更</button>
+      </div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-info">
+        <span id="progressText"></span>
+        <span id="progressPct"></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tabTermDef" onclick="switchTab('termDef')">
+        用語→意味 <span class="badge" id="badgeTermDef">0</span>
+      </div>
+      <div class="tab" id="tabDefTerm" onclick="switchTab('defTerm')">
+        意味→用語 <span class="badge" id="badgeDefTerm">0</span>
+      </div>
+      <div class="tab" id="tabArchive" onclick="switchTab('archive')">
+        アーカイブ <span class="badge" id="badgeArchive">0</span>
+      </div>
+    </div>
+
+    <!-- Term -> Definition Tab -->
+    <div id="panelTermDef">
+      <div id="filtersContainer" class="filters"></div>
+      <div class="bulk-actions">
+        <button class="btn btn-sm" onclick="toggleAll('termDef', true)">すべて開く</button>
+        <button class="btn btn-sm" onclick="toggleAll('termDef', false)">すべて閉じる</button>
+      </div>
+      <table class="card-table" id="termDefTable">
+        <thead>
+          <tr>
+            <th class="col-term">用語</th>
+            <th class="col-def">意味</th>
+
+            <th class="col-action"></th>
+          </tr>
+        </thead>
+        <tbody id="termDefBody"></tbody>
+      </table>
+      <div class="empty-state" id="termDefEmpty" style="display:none">
+        <p>全て覚えました！</p>
+      </div>
+    </div>
+
+    <!-- Definition -> Term Tab -->
+    <div id="panelDefTerm" style="display:none">
+      <div id="filtersContainerReverse" class="filters"></div>
+      <div class="bulk-actions">
+        <button class="btn btn-sm" onclick="toggleAll('defTerm', true)">すべて開く</button>
+        <button class="btn btn-sm" onclick="toggleAll('defTerm', false)">すべて閉じる</button>
+      </div>
+      <table class="card-table" id="defTermTable">
+        <thead>
+          <tr>
+            <th class="col-term">用語</th>
+            <th class="col-def">意味</th>
+
+            <th class="col-action"></th>
+          </tr>
+        </thead>
+        <tbody id="defTermBody"></tbody>
+      </table>
+      <div class="empty-state" id="defTermEmpty" style="display:none">
+        <p>全て覚えました！</p>
+      </div>
+    </div>
+
+    <!-- Archive Tab -->
+    <div id="panelArchive" style="display:none">
+      <div class="bulk-actions">
+        <button class="btn btn-sm" onclick="toggleAllArchive(true)">すべて開く</button>
+        <button class="btn btn-sm" onclick="toggleAllArchive(false)">すべて閉じる</button>
+      </div>
+      <table class="card-table" id="archiveTable">
+        <thead>
+          <tr>
+            <th class="col-term">用語</th>
+            <th class="col-def">意味</th>
+
+            <th class="col-action"></th>
+          </tr>
+        </thead>
+        <tbody id="archiveBody"></tbody>
+      </table>
+      <div class="empty-state" id="archiveEmpty" style="display:none">
+        <p>アーカイブはまだ空です</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- State ---
+let allCards = [];
+let archivedIds = new Set();
+let openIds = new Set();         // term->def tab open state
+let openReverseIds = new Set();  // def->term tab open state
+let openArchiveIds = new Set();
+let categories = [];
+let activeFilter = 'all';
+let activeTab = 'termDef';
+let dataKey = '';
+
+// --- CSV Parser (handles quoted fields with commas/newlines) ---
+function parseCSV(text) {
+  const rows = [];
+  let i = 0;
+  const len = text.length;
+
+  // skip BOM
+  if (text.charCodeAt(0) === 0xFEFF) i = 1;
+
+  while (i < len) {
+    const row = [];
+    while (i < len) {
+      let value = '';
+      if (text[i] === '"') {
+        // quoted field
+        i++;
+        while (i < len) {
+          if (text[i] === '"') {
+            if (i + 1 < len && text[i + 1] === '"') {
+              value += '"';
+              i += 2;
+            } else {
+              i++; // closing quote
+              break;
+            }
+          } else {
+            value += text[i];
+            i++;
+          }
+        }
+      } else {
+        // unquoted field
+        while (i < len && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
+          value += text[i];
+          i++;
+        }
+      }
+      row.push(value.trim());
+
+      if (i < len && text[i] === ',') {
+        i++;
+      } else {
+        break;
+      }
+    }
+    // skip line endings
+    if (i < len && text[i] === '\r') i++;
+    if (i < len && text[i] === '\n') i++;
+
+    if (row.length > 1 || (row.length === 1 && row[0] !== '')) {
+      rows.push(row);
+    }
+  }
+  return rows;
+}
+
+function csvToCards(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+
+  const header = rows[0].map(h => h.toLowerCase().trim());
+  const catIdx = header.indexOf('category');
+  const termIdx = header.indexOf('term');
+  const defIdx = header.indexOf('definition');
+  const ctxIdx = header.indexOf('context');
+
+  if (termIdx === -1 || defIdx === -1) {
+    alert('CSVに term, definition 列が必要です');
+    return [];
+  }
+
+  const cards = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row[termIdx]) continue;
+    cards.push({
+      id: r,
+      category: catIdx >= 0 ? (row[catIdx] || '') : '',
+      term: row[termIdx] || '',
+      definition: row[defIdx] || '',
+      context: ctxIdx >= 0 ? (row[ctxIdx] || '') : ''
+    });
+  }
+  return cards;
+}
+
+// --- File Handling ---
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let text = e.target.result;
+    loadCSVText(text, file.name);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function loadCSVText(text, fileName) {
+  const cards = csvToCards(text);
+  if (cards.length === 0) {
+    alert('有効なデータが見つかりませんでした');
+    return;
+  }
+  allCards = cards;
+
+  // Generate data key from filename
+  dataKey = fileName.replace(/\.csv$/i, '');
+
+  // Save to localStorage
+  localStorage.setItem('fc_csv_text', text);
+  localStorage.setItem('fc_csv_name', fileName);
+
+  // Load archived state for this dataKey
+  loadArchivedState();
+
+  initUI();
+}
+
+function loadArchivedState() {
+  const saved = localStorage.getItem('fc_archived_' + dataKey);
+  if (saved) {
+    try {
+      archivedIds = new Set(JSON.parse(saved));
+    } catch(e) {
+      archivedIds = new Set();
+    }
+  } else {
+    archivedIds = new Set();
+  }
+}
+
+function saveArchivedState() {
+  localStorage.setItem('fc_archived_' + dataKey, JSON.stringify([...archivedIds]));
+}
+
+function changeData() {
+  if (confirm('別のCSVファイルを読み込みますか？')) {
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('uploadScreen').style.display = 'flex';
+  }
+}
+
+// --- UI Init ---
+function initUI() {
+  document.getElementById('uploadScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
+  document.getElementById('titleDisplay').textContent = dataKey || 'フラッシュカード';
+
+  // Extract categories
+  const catSet = new Set();
+  allCards.forEach(c => { if (c.category) catSet.add(c.category); });
+  categories = [...catSet];
+
+  openIds = new Set();
+  openReverseIds = new Set();
+  openArchiveIds = new Set();
+  activeFilter = 'all';
+  activeTab = 'termDef';
+
+  renderFilters();
+  renderTermDef();
+  renderDefTerm();
+  renderArchive();
+  updateProgress();
+  switchTab('termDef');
+}
+
+// --- Filters ---
+function renderFilters() {
+  renderFilterContainer('filtersContainer');
+  renderFilterContainer('filtersContainerReverse');
+}
+
+function renderFilterContainer(containerId) {
+  const container = document.getElementById(containerId);
+  if (categories.length <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+  let html = '<button class="filter-btn active" onclick="setFilter(\'all\')">すべて</button>';
+  categories.forEach(cat => {
+    html += '<button class="filter-btn" onclick="setFilter(\'' + escHtml(cat) + '\')">' + escHtml(cat) + '</button>';
+  });
+  container.innerHTML = html;
+}
+
+function setFilter(cat) {
+  activeFilter = cat;
+  // Update both filter containers
+  ['filtersContainer', 'filtersContainerReverse'].forEach(containerId => {
+    const btns = document.querySelectorAll('#' + containerId + ' .filter-btn');
+    btns.forEach(b => {
+      b.classList.toggle('active', (cat === 'all' && b.textContent === 'すべて') || b.textContent === cat);
+    });
+  });
+  renderTermDef();
+  renderDefTerm();
+}
+
+// --- Render ---
+function getStudyCards() {
+  let cards = allCards.filter(c => !archivedIds.has(c.id));
+  if (activeFilter !== 'all') {
+    cards = cards.filter(c => c.category === activeFilter);
+  }
+  return cards;
+}
+
+function getArchiveCards() {
+  return allCards.filter(c => archivedIds.has(c.id));
+}
+
+// Term -> Definition tab
+function renderTermDef() {
+  const cards = getStudyCards();
+  const tbody = document.getElementById('termDefBody');
+  const empty = document.getElementById('termDefEmpty');
+
+  if (cards.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('termDefTable').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('termDefTable').style.display = '';
+
+  let html = '';
+  cards.forEach(card => {
+    const isOpen = openIds.has(card.id);
+    html += '<tr id="termdef-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="termDef">';
+    html += '<td class="col-term">';
+    if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
+    html += escHtml(card.term);
+    html += '</td>';
+    html += '<td class="col-def">';
+    if (isOpen) {
+      html += '<span class="def-toggle" onclick="toggleCard(\'termDef\',' + card.id + ')">' + escHtml(card.definition);
+      if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
+      html += '</span>';
+    } else {
+      html += '<span class="def-placeholder" onclick="toggleCard(\'termDef\',' + card.id + ', true)">クリックで表示</span>';
+    }
+    html += '</td>';
+    html += '<td class="col-action"><button class="btn btn-sm btn-success" onclick="event.stopPropagation(); archiveCard(' + card.id + ',\'termdef\')">覚えた</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  attachCardTapListeners(tbody);
+  updateBadges();
+}
+
+// Definition -> Term tab
+function renderDefTerm() {
+  const cards = getStudyCards();
+  const tbody = document.getElementById('defTermBody');
+  const empty = document.getElementById('defTermEmpty');
+
+  if (cards.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('defTermTable').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('defTermTable').style.display = '';
+
+  let html = '';
+  cards.forEach(card => {
+    const isOpen = openReverseIds.has(card.id);
+    html += '<tr id="defterm-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="defTerm">';
+    html += '<td class="col-term">';
+    if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
+    if (isOpen) {
+      html += '<span class="def-toggle" onclick="toggleCard(\'defTerm\',' + card.id + ')">' + escHtml(card.term) + '</span>';
+    } else {
+      html += '<span class="def-placeholder" onclick="toggleCard(\'defTerm\',' + card.id + ', true)">クリックで表示</span>';
+    }
+    html += '</td>';
+    html += '<td class="col-def">';
+    html += escHtml(card.definition);
+    if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
+    html += '</td>';
+    html += '<td class="col-action"><button class="btn btn-sm btn-success" onclick="event.stopPropagation(); archiveCard(' + card.id + ',\'defterm\')">覚えた</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  attachCardTapListeners(tbody);
+  updateBadges();
+}
+
+function renderArchive() {
+  const cards = getArchiveCards();
+  const tbody = document.getElementById('archiveBody');
+  const empty = document.getElementById('archiveEmpty');
+
+  if (cards.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('archiveTable').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('archiveTable').style.display = '';
+
+  let html = '';
+  cards.forEach(card => {
+    const isOpen = openArchiveIds.has(card.id);
+    html += '<tr id="archive-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="archive">';
+    html += '<td class="col-term">';
+    if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
+    html += escHtml(card.term);
+    html += '</td>';
+    html += '<td class="col-def">';
+    if (isOpen) {
+      html += '<span class="def-toggle" onclick="toggleArchiveCard(' + card.id + ')">' + escHtml(card.definition);
+      if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
+      html += '</span>';
+    } else {
+      html += '<span class="def-placeholder" onclick="toggleArchiveCard(' + card.id + ', true)">クリックで表示</span>';
+    }
+    html += '</td>';
+    html += '<td class="col-action"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); restoreCard(' + card.id + ')">戻す</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  attachCardTapListeners(tbody);
+  updateBadges();
+}
+
+// --- Card Tap Handler (for mobile card-style layout) ---
+function attachCardTapListeners(tbody) {
+  const rows = tbody.querySelectorAll('tr[data-card-id]');
+  rows.forEach(row => {
+    row.addEventListener('click', function(e) {
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.def-placeholder') || e.target.closest('.def-toggle')) {
+        return;
+      }
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) {
+        return;
+      }
+      const cardId = parseInt(this.getAttribute('data-card-id'), 10);
+      const mode = this.getAttribute('data-mode');
+      if (mode === 'termDef') {
+        toggleCard('termDef', cardId);
+      } else if (mode === 'defTerm') {
+        toggleCard('defTerm', cardId);
+      } else if (mode === 'archive') {
+        toggleArchiveCard(cardId);
+      }
+    });
+  });
+}
+
+// --- Actions ---
+function toggleCard(mode, id, forceOpen) {
+  const set = mode === 'termDef' ? openIds : openReverseIds;
+  if (forceOpen || !set.has(id)) {
+    set.add(id);
+  } else {
+    set.delete(id);
+  }
+  if (mode === 'termDef') {
+    renderTermDef();
+  } else {
+    renderDefTerm();
+  }
+}
+
+function toggleArchiveCard(id, forceOpen) {
+  if (forceOpen || !openArchiveIds.has(id)) {
+    openArchiveIds.add(id);
+  } else {
+    openArchiveIds.delete(id);
+  }
+  renderArchive();
+}
+
+function toggleAll(mode, open) {
+  const cards = getStudyCards();
+  const set = mode === 'termDef' ? openIds : openReverseIds;
+  if (open) {
+    cards.forEach(c => set.add(c.id));
+  } else {
+    cards.forEach(c => set.delete(c.id));
+  }
+  if (mode === 'termDef') {
+    renderTermDef();
+  } else {
+    renderDefTerm();
+  }
+}
+
+function toggleAllArchive(open) {
+  const cards = getArchiveCards();
+  if (open) {
+    cards.forEach(c => openArchiveIds.add(c.id));
+  } else {
+    cards.forEach(c => openArchiveIds.delete(c.id));
+  }
+  renderArchive();
+}
+
+function archiveCard(id, prefix) {
+  const row = document.getElementById(prefix + '-row-' + id);
+  if (row) {
+    row.classList.add('removing');
+    setTimeout(() => {
+      archivedIds.add(id);
+      openIds.delete(id);
+      openReverseIds.delete(id);
+      saveArchivedState();
+      renderTermDef();
+      renderDefTerm();
+      renderArchive();
+      updateProgress();
+    }, 350);
+  } else {
+    archivedIds.add(id);
+    openIds.delete(id);
+    openReverseIds.delete(id);
+    saveArchivedState();
+    renderTermDef();
+    renderDefTerm();
+    renderArchive();
+    updateProgress();
+  }
+}
+
+function restoreCard(id) {
+  const row = document.getElementById('archive-row-' + id);
+  if (row) {
+    row.classList.add('removing');
+    setTimeout(() => {
+      archivedIds.delete(id);
+      openArchiveIds.delete(id);
+      saveArchivedState();
+      renderTermDef();
+      renderDefTerm();
+      renderArchive();
+      updateProgress();
+    }, 350);
+  } else {
+    archivedIds.delete(id);
+    openArchiveIds.delete(id);
+    saveArchivedState();
+    renderTermDef();
+    renderDefTerm();
+    renderArchive();
+    updateProgress();
+  }
+}
+
+// --- Tabs ---
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tabTermDef').classList.toggle('active', tab === 'termDef');
+  document.getElementById('tabDefTerm').classList.toggle('active', tab === 'defTerm');
+  document.getElementById('tabArchive').classList.toggle('active', tab === 'archive');
+  document.getElementById('panelTermDef').style.display = tab === 'termDef' ? '' : 'none';
+  document.getElementById('panelDefTerm').style.display = tab === 'defTerm' ? '' : 'none';
+  document.getElementById('panelArchive').style.display = tab === 'archive' ? '' : 'none';
+}
+
+// --- Progress ---
+function updateProgress() {
+  const total = allCards.length;
+  const archived = archivedIds.size;
+  const remaining = total - archived;
+  const pct = total > 0 ? Math.round((archived / total) * 100) : 0;
+
+  document.getElementById('progressText').textContent = '残り ' + remaining + ' 語 / 全 ' + total + ' 語';
+  document.getElementById('progressPct').textContent = pct + '% 完了';
+  document.getElementById('progressFill').style.width = pct + '%';
+  updateBadges();
+}
+
+function updateBadges() {
+  const studyCount = allCards.filter(c => !archivedIds.has(c.id)).length;
+  const archiveCount = archivedIds.size;
+  document.getElementById('badgeTermDef').textContent = studyCount;
+  document.getElementById('badgeDefTerm').textContent = studyCount;
+  document.getElementById('badgeArchive').textContent = archiveCount;
+}
+
+// --- Utils ---
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// --- Drag & Drop / File Input ---
+(function() {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+  });
+
+  // Restore from localStorage on load
+  const savedText = localStorage.getItem('fc_csv_text');
+  const savedName = localStorage.getItem('fc_csv_name');
+  if (savedText && savedName) {
+    loadCSVText(savedText, savedName);
+  }
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
