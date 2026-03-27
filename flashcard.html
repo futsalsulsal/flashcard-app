@@ -48,6 +48,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 3px; transition: width 0.4s ease; }
 
+/* Direction toggle */
+.direction-toggle { display: flex; gap: 0; margin-bottom: 12px; }
+.toggle-option { padding: 6px 16px; font-size: 0.82rem; border: 1px solid #d1d5db; cursor: pointer; color: #6b7280; background: #fff; transition: all 0.15s; user-select: none; }
+.toggle-option:first-child { border-radius: 6px 0 0 6px; }
+.toggle-option:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+.toggle-option.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.toggle-option input[type="radio"] { display: none; }
+
 /* Filters */
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .filter-btn { padding: 4px 12px; border-radius: 16px; font-size: 0.78rem; border: 1px solid #d1d5db; background: #fff; color: #6b7280; cursor: pointer; transition: all 0.15s; }
@@ -71,6 +79,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 /* Dataset selector */
 .dataset-select { padding: 6px 28px 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font-size: 0.82rem; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; max-width: 200px; text-overflow: ellipsis; }
 .dataset-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+
+/* Gear menu */
+.gear-menu-wrapper { position: relative; display: inline-block; }
+.gear-menu { position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; min-width: 160px; padding: 4px 0; }
+.gear-menu button { display: block; width: 100%; padding: 8px 16px; text-align: left; border: none; background: none; font-size: 0.85rem; cursor: pointer; color: #374151; }
+.gear-menu button:hover { background: #f3f4f6; }
 
 /* Clickable content toggle */
 .def-toggle { cursor: pointer; }
@@ -112,89 +126,43 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 @media (max-width: 640px) {
   .app { padding: 10px; }
 
-  /* Header: 縦積み */
   .header { flex-direction: column; align-items: flex-start; }
   .header h1 { font-size: 1.1rem; }
   .header-actions { width: 100%; }
-  .dataset-select { width: 100%; max-width: none; min-height: 44px; font-size: 0.85rem; }
+  .dataset-select { flex: 1; max-width: none; min-height: 44px; font-size: 0.85rem; }
 
-  /* タップターゲット拡大 */
   .btn { min-height: 44px; padding: 8px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; justify-content: center; }
   .btn-sm { min-height: 44px; padding: 6px 12px; }
-  .tab { padding: 10px 8px; font-size: 0.82rem; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-
-  /* タブ均等配置 */
+  .tab { padding: 10px 8px; font-size: 0.82rem; min-height: 44px; display: flex; align-items: center; justify-content: center; flex: 1; text-align: center; }
   .tabs { display: flex; }
-  .tab { flex: 1; text-align: center; }
 
-  /* フィルタ横スクロール */
   .filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
   .filter-btn { flex-shrink: 0; min-height: 44px; padding: 6px 14px; display: inline-flex; align-items: center; }
 
-  /* テーブルをカード型に変換 */
+  .direction-toggle { width: 100%; }
+  .toggle-option { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+
+  /* Table to card layout */
   .card-table { background: transparent; box-shadow: none; border-radius: 0; }
   .card-table, .card-table thead, .card-table tbody, .card-table tr, .card-table th, .card-table td { display: block; }
   .card-table thead { display: none; }
 
   .card-table tbody tr {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 10px;
-    padding: 12px 14px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    cursor: pointer;
-    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
-    transition: box-shadow 0.15s;
+    background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 10px; padding: 12px 14px; display: flex; flex-wrap: wrap; align-items: flex-start;
+    cursor: pointer; -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08); transition: box-shadow 0.15s;
   }
-  .card-table tbody tr:active {
-    box-shadow: 0 1px 6px rgba(59, 130, 246, 0.18);
-  }
+  .card-table tbody tr:active { box-shadow: 0 1px 6px rgba(59, 130, 246, 0.18); }
 
-  /* 用語名: 左寄せ、残り幅を全て埋める */
-  .card-table td.col-term {
-    width: 0;
-    flex: 1 1 0;
-    font-weight: 600;
-    font-size: 0.92rem;
-    padding: 0;
-    border-bottom: none;
-    order: 1;
-  }
+  .card-table td.col-term { width: 0; flex: 1 1 0; font-weight: 600; font-size: 0.92rem; padding: 0; border-bottom: none; order: 1; }
+  .card-table td.col-action { width: auto; flex: 0 0 auto; padding: 0 0 0 8px; border-bottom: none; text-align: right; order: 2; }
+  .card-table td.col-def { width: 100%; flex: 0 0 100%; padding: 8px 0 0 0; border-bottom: none; font-size: 0.85rem; line-height: 1.6; order: 3; }
 
-  /* 覚えた / 戻す ボタン: 右端固定 */
-  .card-table td.col-action {
-    width: auto;
-    flex: 0 0 auto;
-    padding: 0 0 0 8px;
-    border-bottom: none;
-    text-align: right;
-    order: 2;
-  }
-
-  /* 定義文: 用語+ボタンの下にフルwidth */
-  .card-table td.col-def {
-    width: 100%;
-    flex: 0 0 100%;
-    padding: 8px 0 0 0;
-    border-bottom: none;
-    font-size: 0.85rem;
-    line-height: 1.6;
-    order: 3;
-  }
-
-  /* カード内要素の微調整 */
   .card-table td .cat-tag { margin-bottom: 0; margin-right: 6px; }
   .card-table td .def-placeholder { margin-top: 0; }
   .card-table td .context-sub { margin-top: 4px; }
 
-  /* アニメーション調整 */
-  .card-table tr.removing {
-    animation: mobileSlideOut 0.35s ease forwards;
-    overflow: hidden;
-  }
+  .card-table tr.removing { animation: mobileSlideOut 0.35s ease forwards; overflow: hidden; }
   @keyframes mobileSlideOut {
     0% { opacity: 1; transform: translateX(0); max-height: 300px; }
     100% { opacity: 0; transform: translateX(40px); max-height: 0; padding: 0; margin: 0; }
@@ -221,6 +189,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
       <h1 id="titleDisplay">フラッシュカード</h1>
       <div class="header-actions">
         <select id="datasetSelect" class="dataset-select" onchange="onDatasetChange(this.value)"></select>
+        <div class="gear-menu-wrapper">
+          <button class="btn btn-ghost btn-sm" onclick="toggleGearMenu()" id="gearBtn">&#9881;</button>
+          <div class="gear-menu" id="gearMenu" style="display:none">
+            <button onclick="renameDatasetPrompt()">&#9881; リネーム</button>
+            <button onclick="reloadCSVPrompt()">&#128196; CSV再読込</button>
+            <button onclick="deleteDatasetPrompt()">&#128465; 削除</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -235,61 +211,36 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
     </div>
 
     <div class="tabs">
-      <div class="tab active" id="tabTermDef" onclick="switchTab('termDef')">
-        用語→意味 <span class="badge" id="badgeTermDef">0</span>
-      </div>
-      <div class="tab" id="tabDefTerm" onclick="switchTab('defTerm')">
-        意味→用語 <span class="badge" id="badgeDefTerm">0</span>
+      <div class="tab active" id="tabStudy" onclick="switchTab('study')">
+        学習 <span class="badge" id="badgeStudy">0</span>
       </div>
       <div class="tab" id="tabArchive" onclick="switchTab('archive')">
         アーカイブ <span class="badge" id="badgeArchive">0</span>
       </div>
     </div>
 
-    <!-- Term -> Definition Tab -->
-    <div id="panelTermDef">
+    <!-- Study Tab -->
+    <div id="panelStudy">
+      <div class="direction-toggle">
+        <label class="toggle-option active" id="toggleTermDef" onclick="setStudyDirection('termDef')">
+          <input type="radio" name="direction" value="termDef" checked> 用語→意味
+        </label>
+        <label class="toggle-option" id="toggleDefTerm" onclick="setStudyDirection('defTerm')">
+          <input type="radio" name="direction" value="defTerm"> 意味→用語
+        </label>
+      </div>
+
       <div id="filtersContainer" class="filters"></div>
+
       <div class="bulk-actions">
-        <button class="btn btn-sm" onclick="toggleAll('termDef', true)">すべて開く</button>
-        <button class="btn btn-sm" onclick="toggleAll('termDef', false)">すべて閉じる</button>
+        <button class="btn btn-sm" onclick="toggleAll(true)">すべて開く</button>
+        <button class="btn btn-sm" onclick="toggleAll(false)">すべて閉じる</button>
       </div>
-      <table class="card-table" id="termDefTable">
-        <thead>
-          <tr>
-            <th class="col-term">用語</th>
-            <th class="col-def">意味</th>
-
-            <th class="col-action"></th>
-          </tr>
-        </thead>
-        <tbody id="termDefBody"></tbody>
+      <table class="card-table" id="studyTable">
+        <thead><tr><th class="col-term">用語</th><th class="col-def">意味</th><th class="col-action"></th></tr></thead>
+        <tbody id="studyBody"></tbody>
       </table>
-      <div class="empty-state" id="termDefEmpty" style="display:none">
-        <p>全て覚えました！</p>
-      </div>
-    </div>
-
-    <!-- Definition -> Term Tab -->
-    <div id="panelDefTerm" style="display:none">
-      <div id="filtersContainerReverse" class="filters"></div>
-      <div class="bulk-actions">
-        <button class="btn btn-sm" onclick="toggleAll('defTerm', true)">すべて開く</button>
-        <button class="btn btn-sm" onclick="toggleAll('defTerm', false)">すべて閉じる</button>
-      </div>
-      <table class="card-table" id="defTermTable">
-        <thead>
-          <tr>
-            <th class="col-term">用語</th>
-            <th class="col-def">意味</th>
-
-            <th class="col-action"></th>
-          </tr>
-        </thead>
-        <tbody id="defTermBody"></tbody>
-      </table>
-      <div class="empty-state" id="defTermEmpty" style="display:none">
-        <p>全て覚えました！</p>
-      </div>
+      <div class="empty-state" id="studyEmpty" style="display:none"><p>全て覚えました！</p></div>
     </div>
 
     <!-- Archive Tab -->
@@ -299,19 +250,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
         <button class="btn btn-sm" onclick="toggleAllArchive(false)">すべて閉じる</button>
       </div>
       <table class="card-table" id="archiveTable">
-        <thead>
-          <tr>
-            <th class="col-term">用語</th>
-            <th class="col-def">意味</th>
-
-            <th class="col-action"></th>
-          </tr>
-        </thead>
+        <thead><tr><th class="col-term">用語</th><th class="col-def">意味</th><th class="col-action"></th></tr></thead>
         <tbody id="archiveBody"></tbody>
       </table>
-      <div class="empty-state" id="archiveEmpty" style="display:none">
-        <p>アーカイブはまだ空です</p>
-      </div>
+      <div class="empty-state" id="archiveEmpty" style="display:none"><p>アーカイブはまだ空です</p></div>
     </div>
   </div>
 </div>
@@ -320,21 +262,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 // --- State ---
 let allCards = [];
 let archivedIds = new Set();
-let openIds = new Set();         // term->def tab open state
-let openReverseIds = new Set();  // def->term tab open state
+let openIds = new Set();
 let openArchiveIds = new Set();
 let categories = [];
 let activeFilter = 'all';
-let activeTab = 'termDef';
+let studyDirection = 'termDef';
+let activeTab = 'study';
 let dataKey = '';
 
-// --- CSV Parser (handles quoted fields with commas/newlines) ---
+// --- CSV Parser ---
 function parseCSV(text) {
   const rows = [];
   let i = 0;
   const len = text.length;
-
-  // skip BOM
   if (text.charCodeAt(0) === 0xFEFF) i = 1;
 
   while (i < len) {
@@ -342,44 +282,22 @@ function parseCSV(text) {
     while (i < len) {
       let value = '';
       if (text[i] === '"') {
-        // quoted field
         i++;
         while (i < len) {
           if (text[i] === '"') {
-            if (i + 1 < len && text[i + 1] === '"') {
-              value += '"';
-              i += 2;
-            } else {
-              i++; // closing quote
-              break;
-            }
-          } else {
-            value += text[i];
-            i++;
-          }
+            if (i + 1 < len && text[i + 1] === '"') { value += '"'; i += 2; }
+            else { i++; break; }
+          } else { value += text[i]; i++; }
         }
       } else {
-        // unquoted field
-        while (i < len && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
-          value += text[i];
-          i++;
-        }
+        while (i < len && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') { value += text[i]; i++; }
       }
       row.push(value.trim());
-
-      if (i < len && text[i] === ',') {
-        i++;
-      } else {
-        break;
-      }
+      if (i < len && text[i] === ',') { i++; } else { break; }
     }
-    // skip line endings
     if (i < len && text[i] === '\r') i++;
     if (i < len && text[i] === '\n') i++;
-
-    if (row.length > 1 || (row.length === 1 && row[0] !== '')) {
-      rows.push(row);
-    }
+    if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
   }
   return rows;
 }
@@ -387,17 +305,12 @@ function parseCSV(text) {
 function csvToCards(text) {
   const rows = parseCSV(text);
   if (rows.length < 2) return [];
-
   const header = rows[0].map(h => h.toLowerCase().trim());
   const catIdx = header.indexOf('category');
   const termIdx = header.indexOf('term');
   const defIdx = header.indexOf('definition');
   const ctxIdx = header.indexOf('context');
-
-  if (termIdx === -1 || defIdx === -1) {
-    alert('CSVに term, definition 列が必要です');
-    return [];
-  }
+  if (termIdx === -1 || defIdx === -1) { alert('CSVに term, definition 列が必要です'); return []; }
 
   const cards = [];
   for (let r = 1; r < rows.length; r++) {
@@ -417,61 +330,40 @@ function csvToCards(text) {
 // --- File Handling ---
 function handleFile(file) {
   const reader = new FileReader();
-  reader.onload = function(e) {
-    let text = e.target.result;
-    loadCSVText(text, file.name);
-  };
+  reader.onload = function(e) { loadCSVText(e.target.result, file.name); };
   reader.readAsText(file, 'UTF-8');
 }
 
 function loadCSVText(text, fileName) {
   const cards = csvToCards(text);
-  if (cards.length === 0) {
-    alert('有効なデータが見つかりませんでした');
-    return;
-  }
+  if (cards.length === 0) { alert('有効なデータが見つかりませんでした'); return; }
   allCards = cards;
-
-  // Generate data key from filename
   dataKey = fileName.replace(/\.csv$/i, '');
-
-  // Save dataset to localStorage
   saveDataset(dataKey, text);
   localStorage.setItem('fc_active_dataset', dataKey);
-
-  // Load archived state for this dataKey
   loadArchivedState();
-
   initUI();
 }
 
 // --- Dataset Management ---
 function getDatasetList() {
-  try {
-    return JSON.parse(localStorage.getItem('fc_dataset_list') || '[]');
-  } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem('fc_dataset_list') || '[]'); } catch(e) { return []; }
 }
 
 function saveDataset(key, text) {
   localStorage.setItem('fc_data_' + key, text);
   const list = getDatasetList();
-  if (!list.includes(key)) {
-    list.push(key);
-    localStorage.setItem('fc_dataset_list', JSON.stringify(list));
-  }
+  if (!list.includes(key)) { list.push(key); localStorage.setItem('fc_dataset_list', JSON.stringify(list)); }
 }
 
-function loadDataset(key) {
-  return localStorage.getItem('fc_data_' + key);
-}
+function loadDataset(key) { return localStorage.getItem('fc_data_' + key); }
 
 function renderDatasetSelect() {
   const select = document.getElementById('datasetSelect');
   const list = getDatasetList();
   let html = '';
   list.forEach(name => {
-    const selected = name === dataKey ? ' selected' : '';
-    html += '<option value="' + escHtml(name) + '"' + selected + '>' + escHtml(name) + '</option>';
+    html += '<option value="' + escHtml(name) + '"' + (name === dataKey ? ' selected' : '') + '>' + escHtml(name) + '</option>';
   });
   html += '<option value="__new__">＋ 新規CSVファイル</option>';
   select.innerHTML = html;
@@ -481,9 +373,7 @@ function onDatasetChange(value) {
   if (value === '__new__') {
     document.getElementById('mainScreen').style.display = 'none';
     document.getElementById('uploadScreen').style.display = 'flex';
-    // Reset select to current dataset so back button works
-    const select = document.getElementById('datasetSelect');
-    select.value = dataKey;
+    document.getElementById('datasetSelect').value = dataKey;
     return;
   }
   const text = loadDataset(value);
@@ -499,7 +389,6 @@ function onDatasetChange(value) {
   }
 }
 
-// --- Migrate old localStorage format ---
 function migrateOldStorage() {
   const oldText = localStorage.getItem('fc_csv_text');
   const oldName = localStorage.getItem('fc_csv_name');
@@ -507,7 +396,6 @@ function migrateOldStorage() {
     const key = oldName.replace(/\.csv$/i, '');
     saveDataset(key, oldText);
     localStorage.setItem('fc_active_dataset', key);
-    // Clean up old keys
     localStorage.removeItem('fc_csv_text');
     localStorage.removeItem('fc_csv_name');
   }
@@ -516,11 +404,7 @@ function migrateOldStorage() {
 function loadArchivedState() {
   const saved = localStorage.getItem('fc_archived_' + dataKey);
   if (saved) {
-    try {
-      archivedIds = new Set(JSON.parse(saved));
-    } catch(e) {
-      archivedIds = new Set();
-    }
+    try { archivedIds = new Set(JSON.parse(saved)); } catch(e) { archivedIds = new Set(); }
   } else {
     archivedIds = new Set();
   }
@@ -530,6 +414,98 @@ function saveArchivedState() {
   localStorage.setItem('fc_archived_' + dataKey, JSON.stringify([...archivedIds]));
 }
 
+// --- Gear Menu ---
+function toggleGearMenu() {
+  const menu = document.getElementById('gearMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function closeGearMenu() { document.getElementById('gearMenu').style.display = 'none'; }
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.gear-menu-wrapper')) closeGearMenu();
+});
+
+function deleteDatasetPrompt() {
+  closeGearMenu();
+  if (!confirm('"' + dataKey + '" を削除しますか？学習進捗もすべて消えます')) return;
+  localStorage.removeItem('fc_data_' + dataKey);
+  localStorage.removeItem('fc_archived_' + dataKey);
+  let list = getDatasetList().filter(k => k !== dataKey);
+  localStorage.setItem('fc_dataset_list', JSON.stringify(list));
+  if (list.length > 0) {
+    onDatasetChange(list[0]);
+  } else {
+    dataKey = ''; allCards = [];
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('uploadScreen').style.display = 'flex';
+  }
+}
+
+function renameDatasetPrompt() {
+  closeGearMenu();
+  const newName = prompt('新しいデータセット名を入力:', dataKey);
+  if (!newName || newName.trim() === '' || newName.trim() === dataKey) return;
+  const nk = newName.trim();
+  if (getDatasetList().includes(nk)) { alert('その名前は既に使われています'); return; }
+
+  const csvText = loadDataset(dataKey);
+  if (csvText) localStorage.setItem('fc_data_' + nk, csvText);
+  const arch = localStorage.getItem('fc_archived_' + dataKey);
+  if (arch) localStorage.setItem('fc_archived_' + nk, arch);
+
+  localStorage.removeItem('fc_data_' + dataKey);
+  localStorage.removeItem('fc_archived_' + dataKey);
+
+  let list = getDatasetList();
+  list = list.map(k => k === dataKey ? nk : k);
+  localStorage.setItem('fc_dataset_list', JSON.stringify(list));
+  localStorage.setItem('fc_active_dataset', nk);
+  dataKey = nk;
+  initUI();
+}
+
+function reloadCSVPrompt() {
+  closeGearMenu();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = function() {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const newCards = csvToCards(e.target.result);
+      if (newCards.length === 0) { alert('有効なデータが見つかりませんでした'); return; }
+
+      // Match archived state by term
+      const oldTermToArchived = new Map();
+      allCards.forEach(c => { if (archivedIds.has(c.id)) oldTermToArchived.set(c.term, true); });
+
+      const newArchivedIds = new Set();
+      let matched = 0, added = 0;
+      newCards.forEach(c => {
+        if (oldTermToArchived.has(c.term)) { newArchivedIds.add(c.id); matched++; }
+      });
+      added = newCards.length - matched;
+      const removed = allCards.length - oldTermToArchived.size - (newCards.length - matched - (newCards.length - newCards.filter(c => oldTermToArchived.has(c.term)).length));
+
+      localStorage.setItem('fc_data_' + dataKey, e.target.result);
+      allCards = newCards;
+      archivedIds = newArchivedIds;
+      saveArchivedState();
+      initUI();
+
+      const oldTotal = oldTermToArchived.size;
+      const keptArchived = newCards.filter(c => oldTermToArchived.has(c.term)).length;
+      const newOnly = newCards.length - keptArchived;
+      const removedCount = allCards.length !== newCards.length ? Math.abs(allCards.length - newCards.length) : 0;
+      alert('再読込完了:\n・継続: ' + keptArchived + '語（学習進捗を維持）\n・追加: ' + newOnly + '語（新規）');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+  input.click();
+}
+
 // --- UI Init ---
 function initUI() {
   document.getElementById('uploadScreen').style.display = 'none';
@@ -537,64 +513,52 @@ function initUI() {
   document.getElementById('titleDisplay').textContent = dataKey || 'フラッシュカード';
   renderDatasetSelect();
 
-  // Extract categories
   const catSet = new Set();
   allCards.forEach(c => { if (c.category) catSet.add(c.category); });
   categories = [...catSet];
 
   openIds = new Set();
-  openReverseIds = new Set();
   openArchiveIds = new Set();
   activeFilter = 'all';
-  activeTab = 'termDef';
 
   renderFilters();
-  renderTermDef();
-  renderDefTerm();
+  renderStudy();
   renderArchive();
   updateProgress();
-  switchTab('termDef');
+  switchTab(activeTab);
 }
 
 // --- Filters ---
 function renderFilters() {
-  renderFilterContainer('filtersContainer');
-  renderFilterContainer('filtersContainerReverse');
-}
-
-function renderFilterContainer(containerId) {
-  const container = document.getElementById(containerId);
-  if (categories.length <= 1) {
-    container.style.display = 'none';
-    return;
-  }
+  const container = document.getElementById('filtersContainer');
+  if (categories.length <= 1) { container.style.display = 'none'; return; }
   container.style.display = 'flex';
-  let html = '<button class="filter-btn active" onclick="setFilter(\'all\')">すべて</button>';
+  let html = '<button class="filter-btn' + (activeFilter === 'all' ? ' active' : '') + '" onclick="setFilter(\'all\')">すべて</button>';
   categories.forEach(cat => {
-    html += '<button class="filter-btn" onclick="setFilter(\'' + escHtml(cat) + '\')">' + escHtml(cat) + '</button>';
+    html += '<button class="filter-btn' + (activeFilter === cat ? ' active' : '') + '" onclick="setFilter(\'' + escHtml(cat).replace(/'/g, "\\'") + '\')">' + escHtml(cat) + '</button>';
   });
   container.innerHTML = html;
 }
 
 function setFilter(cat) {
   activeFilter = cat;
-  // Update both filter containers
-  ['filtersContainer', 'filtersContainerReverse'].forEach(containerId => {
-    const btns = document.querySelectorAll('#' + containerId + ' .filter-btn');
-    btns.forEach(b => {
-      b.classList.toggle('active', (cat === 'all' && b.textContent === 'すべて') || b.textContent === cat);
-    });
-  });
-  renderTermDef();
-  renderDefTerm();
+  renderFilters();
+  renderStudy();
 }
 
-// --- Render ---
+// --- Direction Toggle ---
+function setStudyDirection(dir) {
+  studyDirection = dir;
+  document.getElementById('toggleTermDef').classList.toggle('active', dir === 'termDef');
+  document.getElementById('toggleDefTerm').classList.toggle('active', dir === 'defTerm');
+  openIds = new Set();
+  renderStudy();
+}
+
+// --- Card Lists ---
 function getStudyCards() {
   let cards = allCards.filter(c => !archivedIds.has(c.id));
-  if (activeFilter !== 'all') {
-    cards = cards.filter(c => c.category === activeFilter);
-  }
+  if (activeFilter !== 'all') cards = cards.filter(c => c.category === activeFilter);
   return cards;
 }
 
@@ -602,39 +566,52 @@ function getArchiveCards() {
   return allCards.filter(c => archivedIds.has(c.id));
 }
 
-// Term -> Definition tab
-function renderTermDef() {
+// --- Render Study ---
+function renderStudy() {
   const cards = getStudyCards();
-  const tbody = document.getElementById('termDefBody');
-  const empty = document.getElementById('termDefEmpty');
+  const tbody = document.getElementById('studyBody');
+  const empty = document.getElementById('studyEmpty');
+  const table = document.getElementById('studyTable');
 
   if (cards.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    document.getElementById('termDefTable').style.display = 'none';
-    return;
+    tbody.innerHTML = ''; empty.style.display = 'block'; table.style.display = 'none';
+    updateBadges(); return;
   }
-  empty.style.display = 'none';
-  document.getElementById('termDefTable').style.display = '';
+  empty.style.display = 'none'; table.style.display = '';
 
   let html = '';
   cards.forEach(card => {
     const isOpen = openIds.has(card.id);
-    html += '<tr id="termdef-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="termDef">';
-    html += '<td class="col-term">';
-    if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
-    html += escHtml(card.term);
-    html += '</td>';
-    html += '<td class="col-def">';
-    if (isOpen) {
-      html += '<span class="def-toggle" onclick="toggleCard(\'termDef\',' + card.id + ')">' + escHtml(card.definition);
+    html += '<tr id="study-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="study">';
+
+    if (studyDirection === 'termDef') {
+      html += '<td class="col-term">';
+      if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
+      html += escHtml(card.term) + '</td>';
+      html += '<td class="col-def">';
+      if (isOpen) {
+        html += '<span class="def-toggle" onclick="toggleStudyCard(' + card.id + ')">' + escHtml(card.definition);
+        if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
+        html += '</span>';
+      } else {
+        html += '<span class="def-placeholder" onclick="toggleStudyCard(' + card.id + ', true)">クリックで表示</span>';
+      }
+      html += '</td>';
+    } else {
+      html += '<td class="col-term">';
+      if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
+      if (isOpen) {
+        html += '<span class="def-toggle" onclick="toggleStudyCard(' + card.id + ')">' + escHtml(card.term) + '</span>';
+      } else {
+        html += '<span class="def-placeholder" onclick="toggleStudyCard(' + card.id + ', true)">クリックで表示</span>';
+      }
+      html += '</td>';
+      html += '<td class="col-def">' + escHtml(card.definition);
       if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
-      html += '</span>';
-    } else {
-      html += '<span class="def-placeholder" onclick="toggleCard(\'termDef\',' + card.id + ', true)">クリックで表示</span>';
+      html += '</td>';
     }
-    html += '</td>';
-    html += '<td class="col-action"><button class="btn btn-sm btn-success" onclick="event.stopPropagation(); archiveCard(' + card.id + ',\'termdef\')">覚えた</button></td>';
+
+    html += '<td class="col-action"><button class="btn btn-sm btn-success" onclick="event.stopPropagation(); archiveCard(' + card.id + ')">覚えた</button></td>';
     html += '</tr>';
   });
   tbody.innerHTML = html;
@@ -642,58 +619,18 @@ function renderTermDef() {
   updateBadges();
 }
 
-// Definition -> Term tab
-function renderDefTerm() {
-  const cards = getStudyCards();
-  const tbody = document.getElementById('defTermBody');
-  const empty = document.getElementById('defTermEmpty');
-
-  if (cards.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    document.getElementById('defTermTable').style.display = 'none';
-    return;
-  }
-  empty.style.display = 'none';
-  document.getElementById('defTermTable').style.display = '';
-
-  let html = '';
-  cards.forEach(card => {
-    const isOpen = openReverseIds.has(card.id);
-    html += '<tr id="defterm-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="defTerm">';
-    html += '<td class="col-term">';
-    if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
-    if (isOpen) {
-      html += '<span class="def-toggle" onclick="toggleCard(\'defTerm\',' + card.id + ')">' + escHtml(card.term) + '</span>';
-    } else {
-      html += '<span class="def-placeholder" onclick="toggleCard(\'defTerm\',' + card.id + ', true)">クリックで表示</span>';
-    }
-    html += '</td>';
-    html += '<td class="col-def">';
-    html += escHtml(card.definition);
-    if (card.context) html += '<span class="context-sub">' + escHtml(card.context) + '</span>';
-    html += '</td>';
-    html += '<td class="col-action"><button class="btn btn-sm btn-success" onclick="event.stopPropagation(); archiveCard(' + card.id + ',\'defterm\')">覚えた</button></td>';
-    html += '</tr>';
-  });
-  tbody.innerHTML = html;
-  attachCardTapListeners(tbody);
-  updateBadges();
-}
-
+// --- Render Archive ---
 function renderArchive() {
   const cards = getArchiveCards();
   const tbody = document.getElementById('archiveBody');
   const empty = document.getElementById('archiveEmpty');
+  const table = document.getElementById('archiveTable');
 
   if (cards.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    document.getElementById('archiveTable').style.display = 'none';
-    return;
+    tbody.innerHTML = ''; empty.style.display = 'block'; table.style.display = 'none';
+    updateBadges(); return;
   }
-  empty.style.display = 'none';
-  document.getElementById('archiveTable').style.display = '';
+  empty.style.display = 'none'; table.style.display = '';
 
   let html = '';
   cards.forEach(card => {
@@ -701,8 +638,7 @@ function renderArchive() {
     html += '<tr id="archive-row-' + card.id + '" data-card-id="' + card.id + '" data-mode="archive">';
     html += '<td class="col-term">';
     if (card.category) html += '<span class="cat-tag">' + escHtml(card.category) + '</span>';
-    html += escHtml(card.term);
-    html += '</td>';
+    html += escHtml(card.term) + '</td>';
     html += '<td class="col-def">';
     if (isOpen) {
       html += '<span class="def-toggle" onclick="toggleArchiveCard(' + card.id + ')">' + escHtml(card.definition);
@@ -720,103 +656,58 @@ function renderArchive() {
   updateBadges();
 }
 
-// --- Card Tap Handler (for mobile card-style layout) ---
+// --- Card Tap Handler ---
 function attachCardTapListeners(tbody) {
-  const rows = tbody.querySelectorAll('tr[data-card-id]');
-  rows.forEach(row => {
+  tbody.querySelectorAll('tr[data-card-id]').forEach(row => {
     row.addEventListener('click', function(e) {
-      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.def-placeholder') || e.target.closest('.def-toggle')) {
-        return;
-      }
-      const selection = window.getSelection();
-      if (selection && selection.toString().length > 0) {
-        return;
-      }
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.def-placeholder') || e.target.closest('.def-toggle')) return;
+      if (window.getSelection && window.getSelection().toString().length > 0) return;
       const cardId = parseInt(this.getAttribute('data-card-id'), 10);
       const mode = this.getAttribute('data-mode');
-      if (mode === 'termDef') {
-        toggleCard('termDef', cardId);
-      } else if (mode === 'defTerm') {
-        toggleCard('defTerm', cardId);
-      } else if (mode === 'archive') {
-        toggleArchiveCard(cardId);
-      }
+      if (mode === 'study') toggleStudyCard(cardId);
+      else if (mode === 'archive') toggleArchiveCard(cardId);
     });
   });
 }
 
 // --- Actions ---
-function toggleCard(mode, id, forceOpen) {
-  const set = mode === 'termDef' ? openIds : openReverseIds;
-  if (forceOpen || !set.has(id)) {
-    set.add(id);
-  } else {
-    set.delete(id);
-  }
-  if (mode === 'termDef') {
-    renderTermDef();
-  } else {
-    renderDefTerm();
-  }
+function toggleStudyCard(id, forceOpen) {
+  if (forceOpen || !openIds.has(id)) openIds.add(id);
+  else openIds.delete(id);
+  renderStudy();
 }
 
 function toggleArchiveCard(id, forceOpen) {
-  if (forceOpen || !openArchiveIds.has(id)) {
-    openArchiveIds.add(id);
-  } else {
-    openArchiveIds.delete(id);
-  }
+  if (forceOpen || !openArchiveIds.has(id)) openArchiveIds.add(id);
+  else openArchiveIds.delete(id);
   renderArchive();
 }
 
-function toggleAll(mode, open) {
+function toggleAll(open) {
   const cards = getStudyCards();
-  const set = mode === 'termDef' ? openIds : openReverseIds;
-  if (open) {
-    cards.forEach(c => set.add(c.id));
-  } else {
-    cards.forEach(c => set.delete(c.id));
-  }
-  if (mode === 'termDef') {
-    renderTermDef();
-  } else {
-    renderDefTerm();
-  }
+  if (open) cards.forEach(c => openIds.add(c.id));
+  else cards.forEach(c => openIds.delete(c.id));
+  renderStudy();
 }
 
 function toggleAllArchive(open) {
   const cards = getArchiveCards();
-  if (open) {
-    cards.forEach(c => openArchiveIds.add(c.id));
-  } else {
-    cards.forEach(c => openArchiveIds.delete(c.id));
-  }
+  if (open) cards.forEach(c => openArchiveIds.add(c.id));
+  else cards.forEach(c => openArchiveIds.delete(c.id));
   renderArchive();
 }
 
-function archiveCard(id, prefix) {
-  const row = document.getElementById(prefix + '-row-' + id);
+function archiveCard(id) {
+  const row = document.getElementById('study-row-' + id);
   if (row) {
     row.classList.add('removing');
     setTimeout(() => {
-      archivedIds.add(id);
-      openIds.delete(id);
-      openReverseIds.delete(id);
-      saveArchivedState();
-      renderTermDef();
-      renderDefTerm();
-      renderArchive();
-      updateProgress();
+      archivedIds.add(id); openIds.delete(id);
+      saveArchivedState(); renderStudy(); renderArchive(); updateProgress();
     }, 350);
   } else {
-    archivedIds.add(id);
-    openIds.delete(id);
-    openReverseIds.delete(id);
-    saveArchivedState();
-    renderTermDef();
-    renderDefTerm();
-    renderArchive();
-    updateProgress();
+    archivedIds.add(id); openIds.delete(id);
+    saveArchivedState(); renderStudy(); renderArchive(); updateProgress();
   }
 }
 
@@ -825,33 +716,21 @@ function restoreCard(id) {
   if (row) {
     row.classList.add('removing');
     setTimeout(() => {
-      archivedIds.delete(id);
-      openArchiveIds.delete(id);
-      saveArchivedState();
-      renderTermDef();
-      renderDefTerm();
-      renderArchive();
-      updateProgress();
+      archivedIds.delete(id); openArchiveIds.delete(id);
+      saveArchivedState(); renderStudy(); renderArchive(); updateProgress();
     }, 350);
   } else {
-    archivedIds.delete(id);
-    openArchiveIds.delete(id);
-    saveArchivedState();
-    renderTermDef();
-    renderDefTerm();
-    renderArchive();
-    updateProgress();
+    archivedIds.delete(id); openArchiveIds.delete(id);
+    saveArchivedState(); renderStudy(); renderArchive(); updateProgress();
   }
 }
 
 // --- Tabs ---
 function switchTab(tab) {
   activeTab = tab;
-  document.getElementById('tabTermDef').classList.toggle('active', tab === 'termDef');
-  document.getElementById('tabDefTerm').classList.toggle('active', tab === 'defTerm');
+  document.getElementById('tabStudy').classList.toggle('active', tab === 'study');
   document.getElementById('tabArchive').classList.toggle('active', tab === 'archive');
-  document.getElementById('panelTermDef').style.display = tab === 'termDef' ? '' : 'none';
-  document.getElementById('panelDefTerm').style.display = tab === 'defTerm' ? '' : 'none';
+  document.getElementById('panelStudy').style.display = tab === 'study' ? '' : 'none';
   document.getElementById('panelArchive').style.display = tab === 'archive' ? '' : 'none';
 }
 
@@ -861,7 +740,6 @@ function updateProgress() {
   const archived = archivedIds.size;
   const remaining = total - archived;
   const pct = total > 0 ? Math.round((archived / total) * 100) : 0;
-
   document.getElementById('progressText').textContent = '残り ' + remaining + ' 語 / 全 ' + total + ' 語';
   document.getElementById('progressPct').textContent = pct + '% 完了';
   document.getElementById('progressFill').style.width = pct + '%';
@@ -871,8 +749,7 @@ function updateProgress() {
 function updateBadges() {
   const studyCount = allCards.filter(c => !archivedIds.has(c.id)).length;
   const archiveCount = archivedIds.size;
-  document.getElementById('badgeTermDef').textContent = studyCount;
-  document.getElementById('badgeDefTerm').textContent = studyCount;
+  document.getElementById('badgeStudy').textContent = studyCount;
   document.getElementById('badgeArchive').textContent = archiveCount;
 }
 
@@ -883,33 +760,21 @@ function escHtml(str) {
   return d.innerHTML;
 }
 
-// --- Drag & Drop / File Input ---
+// --- Init ---
 (function() {
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
 
   dropZone.addEventListener('click', () => fileInput.click());
-
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
-  });
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
   dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
+    e.preventDefault(); dropZone.classList.remove('dragover');
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   });
+  fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) handleFile(file); });
 
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFile(file);
-  });
-
-  // Migrate old format & restore from localStorage
   migrateOldStorage();
   const activeKey = localStorage.getItem('fc_active_dataset');
   if (activeKey) {
@@ -925,7 +790,6 @@ function escHtml(str) {
     }
   }
 
-  // Register Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
